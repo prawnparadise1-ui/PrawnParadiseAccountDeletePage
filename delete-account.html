@@ -2,12 +2,45 @@
 <html>
 <head>
   <title>Delete Account</title>
-  <script type="module" src="./delete-account.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 400px;
+      margin: 40px auto;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      text-align: center;
+    }
+    button {
+      padding: 12px 20px;
+      font-size: 18px;
+      background-color: #e53935;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    button:hover {
+      background-color: #d32f2f;
+    }
+    #recaptcha-container {
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
+
   <h1>Delete Your Account</h1>
   <p>This will permanently delete your account and all associated data.</p>
+
   <button id="deleteBtn">Delete My Account</button>
+
   <div id="recaptcha-container"></div>
+
+  <script type="module" src="./delete-account.js"></script>
 </body>
 </html>
