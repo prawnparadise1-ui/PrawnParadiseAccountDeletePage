@@ -13,15 +13,14 @@ import {
   remove
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-// Replace with your actual Firebase config
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBNyDnZd2bEanSFPGu7xMgEq04g_mLXRiU",
+  authDomain: "testappd-bfd14.firebaseapp.com",
+  databaseURL: "https://testappd-bfd14.firebaseio.com",
+  projectId: "testappd-bfd14",
+  storageBucket: "testappd-bfd14.firebasestorage.app",
+  messagingSenderId: "1065516210854",
+  appId: "1:1065516210854:web:e8c5c22a075728927d7267"
 };
 
 const app = initializeApp(firebaseConfig);
