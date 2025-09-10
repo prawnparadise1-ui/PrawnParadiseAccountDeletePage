@@ -3,7 +3,7 @@
 <head>
   <title>Phone Login</title>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
       font-family: sans-serif;
@@ -47,10 +47,9 @@
   <!-- Verify code -->
   <button id="verifyCodeBtn">Verify Code & Continue</button>
 
-  <!-- Firebase reCAPTCHA container -->
+  <!-- reCAPTCHA container -->
   <div id="recaptcha-container"></div>
 
-  <!-- Firebase JS -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
@@ -59,6 +58,7 @@
       RecaptchaVerifier
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
+    // Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBNyDnZd2bEanSFPGu7xMgEq04g_mLXRiU",
       authDomain: "testappd-bfd14.firebaseapp.com",
@@ -73,58 +73,89 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    // Setup invisible reCAPTCHA
+    // Clear previous reCAPTCHA if exists, then create new invisible reCAPTCHA verifier
     if (window.recaptchaVerifier) {
       window.recaptchaVerifier.clear();
     }
+
     window.recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', {
       size: 'invisible',
       callback: (response) => {
-        console.log("reCAPTCHA solved");
+        console.log('reCAPTCHA solved, response:', response);
+      },
+      'expired-callback': () => {
+        console.warn('reCAPTCHA expired, please complete it again.');
       }
     }, auth);
 
+    // Explicitly render the reCAPTCHA and log widget ID
+    window.recaptchaVerifier.render()
+      .then(widgetId => {
+        window.recaptchaWidgetId = widgetId;
+        console.log('reCAPTCHA widget rendered with ID:', widgetId);
+      })
+      .catch(error => {
+        console.error('Error rendering reCAPTCHA:', error);
+        alert('Failed to render reCAPTCHA. Check console for details.');
+      });
+
     // Send verification code to phone number
     const sendCode = () => {
-      const phoneNumber = document.getElementById("phone").value.trim();
+      const phoneNumber = document.getElementById('phone').value.trim();
+      console.log('Send code clicked. Phone number:', phoneNumber);
+
       if (!phoneNumber) {
-        alert("Please enter a phone number.");
+        alert('Please enter a phone number.');
+        return;
+      }
+
+      if (!window.recaptchaVerifier) {
+        alert('reCAPTCHA verifier is not ready. Please reload the page.');
         return;
       }
 
       signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier)
-        .then((confirmationResult) => {
+        .then(confirmationResult => {
           window.confirmationResult = confirmationResult;
-          alert("Verification code sent to " + phoneNumber);
+          alert('Verification code sent to ' + phoneNumber);
+          console.log('confirmationResult:', confirmationResult);
         })
-        .catch((error) => {
-          console.error("Error sending SMS:", error);
-          alert("Error: " + error.message);
+        .catch(error => {
+          console.error('Error sending SMS:', error);
+          alert('Error sending SMS: ' + error.message);
         });
     };
 
-    // Verify the code entered by the user
+    // Verify the code entered by user
     const verifyCode = () => {
-      const code = document.getElementById("code").value.trim();
+      const code = document.getElementById('code').value.trim();
+      console.log('Verify code clicked. Code:', code);
+
       if (!code) {
-        alert("Please enter the verification code.");
+        alert('Please enter the verification code.');
+        return;
+      }
+
+      if (!window.confirmationResult) {
+        alert('No confirmation result available. Please request code again.');
         return;
       }
 
       window.confirmationResult.confirm(code)
-        .then((result) => {
-          alert("Phone verified! Redirecting...");
-          window.location.href = "delete-account.html";
+        .then(result => {
+          alert('Phone verified! Redirecting...');
+          console.log('User signed in:', result.user);
+          window.location.href = 'delete-account.html'; // Change as needed
         })
-        .catch((error) => {
-          console.error("Code verification failed:", error);
-          alert("Invalid or expired verification code.");
+        .catch(error => {
+          console.error('Code verification failed:', error);
+          alert('Invalid or expired verification code.');
         });
     };
 
-    // Attach event listeners
-    document.getElementById("sendCodeBtn").addEventListener("click", sendCode);
-    document.getElementById("verifyCodeBtn").addEventListener("click", verifyCode);
+    // Attach event listeners on buttons
+    document.getElementById('sendCodeBtn').addEventListener('click', sendCode);
+    document.getElementById('verifyCodeBtn').addEventListener('click', verifyCode);
   </script>
 
 </body>
