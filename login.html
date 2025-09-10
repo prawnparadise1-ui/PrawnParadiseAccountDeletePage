@@ -30,7 +30,7 @@
   <h2>Sign in with Phone Number</h2>
 
   <input type="text" id="phone" placeholder="+1234567890" />
-  <button id="sendCodeBtn">Send Verification Code...</button>
+  <button id="sendCodeBtn">Send Verification Code!!!</button>
 
   <input type="text" id="code" placeholder="Enter verification code" />
   <button id="verifyCodeBtn">Verify Code & Continue</button>
@@ -60,16 +60,12 @@
     const auth = getAuth(app);
 
     // Setup invisible reCAPTCHA verifier linked to 'recaptcha-container'
-    window.recaptchaVerifier = new RecaptchaVerifier(
-      "recaptcha-container",
-      {
-        size: "invisible",
-        callback: (response) => {
-          console.log("reCAPTCHA solved", response);
-        }
-      },
-      auth
-    );
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            size: 'invisible',
+            callback: () => {
+                console.log('recaptcha resolved..')
+            }
+        });
 
     // Send verification code (OTP)
     const sendCode = () => {
