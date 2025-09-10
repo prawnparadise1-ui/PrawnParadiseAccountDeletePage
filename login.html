@@ -1,71 +1,36 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Login with Phone</title>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import {
-      getAuth,
-      signInWithPhoneNumber,
-      RecaptchaVerifier
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import {
+    getAuth,
+    signInWithPhoneNumber,
+    RecaptchaVerifier
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-    const firebaseConfig = {
+  const firebaseConfig = {
       apiKey: "AIzaSyBNyDnZd2bEanSFPGu7xMgEq04g_mLXRiU",
       authDomain: "testappd-bfd14.firebaseapp.com",
       projectId: "testappd-bfd14",
       appId: "1:1065516210854:web:e8c5c22a075728927d7267"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
 
-    // Setup reCAPTCHA
-    window.recaptchaVerifier = new RecaptchaVerifier("recaptcha-container", {
-      size: "invisible",
-      callback: (response) => {
-        console.log("reCAPTCHA solved");
-      }
-    }, auth);
+  window.recaptchaVerifier = new RecaptchaVerifier("recaptcha-container", {
+    size: "invisible"
+  }, auth);
 
-    // Send code
-    window.sendCode = () => {
-      const phone = document.getElementById("phone").value;
-      signInWithPhoneNumber(auth, phone, window.recaptchaVerifier)
-        .then((confirmationResult) => {
-          window.confirmationResult = confirmationResult;
-          alert("Code sent!");
-        })
-        .catch((error) => {
-          alert("Error sending code: " + error.message);
-          console.error(error);
-        });
-    };
+  window.sendCode = function () {
+    const phone = document.getElementById("phone").value;
+    signInWithPhoneNumber(auth, phone, window.recaptchaVerifier)
+      .then((confirmationResult) => {
+        window.confirmationResult = confirmationResult;
+        alert("Code sent!");
+      })
+      .catch((error) => {
+        console.error("SMS error:", error);
+        alert("Error: " + error.message);
+      });
+  };
 
-    // Verify code
-    window.verifyCode = () => {
-      const code = document.getElementById("code").value;
-      window.confirmationResult.confirm(code)
-        .then((result) => {
-          alert("Login successful");
-          window.location.href = "delete-account.html"; // redirect
-        })
-        .catch((error) => {
-          alert("Invalid code: " + error.message);
-        });
-    };
-  </script>
-</head>
-<body>
-  <h2>Login with Phone</h2>
-  <input type="text" id="phone" placeholder="+1234567890">
-  <button onclick="sendCode()">Send Code...</button>
-
-  <br><br>
-
-  <input type="text" id="code" placeholder="Enter verification code">
-  <button onclick="verifyCode()">Verify Code</button>
-
-  <div id="recaptcha-container"></div>
-</body>
-</html>
+</script>
