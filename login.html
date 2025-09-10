@@ -38,8 +38,12 @@
   <div id="recaptcha-container"></div>
 
   <script type="module">
-    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
-
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getAuth,
+      RecaptchaVerifier,
+      signInWithPhoneNumber
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
     // Your Firebase config - replace with your real config
     const firebaseConfig = {
@@ -51,16 +55,17 @@
       appId: "1:1065516210854:web:e8c5c22a075728927d7267"
     };
 
-    const auth = getAuth();
-window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-  'size': 'normal',
-  'callback': (response) => {
-    console.log('recaptcha resolved..')
-  },
-  'expired-callback': () => {
-    console.log('recaptcha expired..')
-  }
-});
+    // Initialize Firebase app and auth
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // Setup invisible reCAPTCHA verifier linked to 'recaptcha-container'
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            size: 'invisible',
+            callback: () => {
+                console.log('recaptcha resolved..')
+            }
+        });
 
     // Send verification code (OTP)
     const sendCode = () => {
