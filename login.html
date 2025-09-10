@@ -2,8 +2,8 @@
 <html>
 <head>
   <title>Phone Login</title>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
       font-family: sans-serif;
@@ -13,7 +13,6 @@
       border: 1px solid #ddd;
       border-radius: 8px;
     }
-
     input {
       display: block;
       width: 100%;
@@ -21,14 +20,12 @@
       padding: 10px;
       font-size: 16px;
     }
-
     button {
       padding: 10px;
       font-size: 16px;
       width: 100%;
       margin-bottom: 10px;
     }
-
     #recaptcha-container {
       margin-top: 20px;
     }
@@ -38,22 +35,22 @@
 
   <h2>Sign in with Phone Number</h2>
 
-  <!-- 📱 Phone number input -->
+  <!-- Phone number input -->
   <input type="text" id="phone" placeholder="+1234567890" />
 
-  <!-- 📤 Send code -->
+  <!-- Send code -->
   <button id="sendCodeBtn">Send Verification Code</button>
 
-  <!-- 🔐 Verification code input -->
+  <!-- Verification code input -->
   <input type="text" id="code" placeholder="Enter verification code" />
 
-  <!-- ✅ Verify code -->
+  <!-- Verify code -->
   <button id="verifyCodeBtn">Verify Code & Continue</button>
 
-  <!-- 🛡️ Required for Firebase -->
+  <!-- Firebase reCAPTCHA container -->
   <div id="recaptcha-container"></div>
 
-  <!-- Firebase + JS -->
+  <!-- Firebase JS -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
@@ -64,68 +61,4 @@
 
     const firebaseConfig = {
       apiKey: "AIzaSyBNyDnZd2bEanSFPGu7xMgEq04g_mLXRiU",
-      authDomain: "testappd-bfd14.firebaseapp.com",
-      databaseURL: "https://testappd-bfd14.firebaseio.com",
-      projectId: "testappd-bfd14",
-      storageBucket: "testappd-bfd14.firebasestorage.app",
-      messagingSenderId: "1065516210854",
-      appId: "1:1065516210854:web:e8c5c22a075728927d7267"
-    };
-
-    // 🔧 Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
-    // 🛡️ Setup invisible reCAPTCHA
-    window.recaptchaVerifier = new RecaptchaVerifier("recaptcha-container", {
-      size: "invisible",
-      callback: (response) => {
-        console.log("reCAPTCHA solved");
-      }
-    }, auth);
-
-    // 📤 Send verification code
-    const sendCode = () => {
-      const phoneNumber = document.getElementById("phone").value;
-      if (!phoneNumber) {
-        alert("Please enter a phone number.");
-        return;
-      }
-
-      signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier)
-        .then((confirmationResult) => {
-          window.confirmationResult = confirmationResult;
-          alert("Verification code sent to " + phoneNumber);
-        })
-        .catch((error) => {
-          console.error("Error sending SMS:", error);
-          alert("Error: " + error.message);
-        });
-    };
-
-    // 🔐 Verify the code
-    const verifyCode = () => {
-      const code = document.getElementById("code").value;
-      if (!code) {
-        alert("Please enter the verification code.");
-        return;
-      }
-
-      window.confirmationResult.confirm(code)
-        .then((result) => {
-          alert("Phone verified! Redirecting...");
-          window.location.href = "delete-account.html";
-        })
-        .catch((error) => {
-          console.error("Code verification failed:", error);
-          alert("Invalid or expired verification code.");
-        });
-    };
-
-    // 🧠 Attach click listeners
-    document.getElementById("sendCodeBtn").addEventListener("click", sendCode);
-    document.getElementById("verifyCodeBtn").addEventListener("click", verifyCode);
-  </script>
-
-</body>
-</html>
+      authDomain: "testappd
