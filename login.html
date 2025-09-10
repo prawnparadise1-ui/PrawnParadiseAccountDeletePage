@@ -61,4 +61,71 @@
 
     const firebaseConfig = {
       apiKey: "AIzaSyBNyDnZd2bEanSFPGu7xMgEq04g_mLXRiU",
-      authDomain: "testappd
+      authDomain: "testappd-bfd14.firebaseapp.com",
+      databaseURL: "https://testappd-bfd14.firebaseio.com",
+      projectId: "testappd-bfd14",
+      storageBucket: "testappd-bfd14.firebasestorage.app",
+      messagingSenderId: "1065516210854",
+      appId: "1:1065516210854:web:e8c5c22a075728927d7267"
+    };
+
+    // Initialize Firebase app and auth
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // Setup invisible reCAPTCHA
+    if (window.recaptchaVerifier) {
+      window.recaptchaVerifier.clear();
+    }
+    window.recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', {
+      size: 'invisible',
+      callback: (response) => {
+        console.log("reCAPTCHA solved");
+      }
+    }, auth);
+
+    // Send verification code to phone number
+    const sendCode = () => {
+      const phoneNumber = document.getElementById("phone").value.trim();
+      if (!phoneNumber) {
+        alert("Please enter a phone number.");
+        return;
+      }
+
+      signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier)
+        .then((confirmationResult) => {
+          window.confirmationResult = confirmationResult;
+          alert("Verification code sent to " + phoneNumber);
+        })
+        .catch((error) => {
+          console.error("Error sending SMS:", error);
+          alert("Error: " + error.message);
+        });
+    };
+
+    // Verify the code entered by the user
+    const verifyCode = () => {
+      const code = document.getElementById("code").value.trim();
+      if (!code) {
+        alert("Please enter the verification code.");
+        return;
+      }
+
+      window.confirmationResult.confirm(code)
+        .then((result) => {
+          alert("Phone verified! Redirecting...");
+          window.location.href = "delete-account.html";
+        })
+        .catch((error) => {
+          console.error("Code verification failed:", error);
+          alert("Invalid or expired verification code.");
+        });
+    };
+
+    // Attach event listeners
+    document.getElementById("sendCodeBtn").addEventListener("click", sendCode);
+    document.getElementById("verifyCodeBtn").addEventListener("click", verifyCode);
+  </script>
+
+</body>
+</html>
