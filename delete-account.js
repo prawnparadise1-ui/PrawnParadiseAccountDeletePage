@@ -30,7 +30,7 @@ const db = getDatabase(app);
 onAuthStateChanged(auth, (user) => {
   if (!user) {
     alert("Please sign in first.");
-    window.location.href = "/login.html"; // Change to your login page
+    window.location.href = "login.html"; // ✅ relative path
   }
 });
 
@@ -38,7 +38,7 @@ document.getElementById('deleteBtn').addEventListener('click', async () => {
   const user = auth.currentUser;
 
   if (!user) {
-    alert("No user is currently signed in.");
+    alert("No user is currently signed in...");
     return;
   }
 
