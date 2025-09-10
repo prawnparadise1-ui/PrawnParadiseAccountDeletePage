@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -30,10 +31,10 @@
   <h2>Sign in with Phone Number</h2>
 
   <input type="text" id="phone" placeholder="+1234567890" />
-  <button id="sendCodeBtn">Send Verification Code!!!</button>
+  <button id="sendCodeBtn">Send Verification Code</button>
 
-  <input type="text" id="code" placeholder="Enter verification code" />
-  <button id="verifyCodeBtn">Verify Code & Continue</button>
+  <input type="text" id="code" placeholder="Enter verification code" style="display: none;" />
+  <button id="verifyCodeBtn" style="display: none;">Verify Code & Continue</button>
 
   <div id="recaptcha-container"></div>
 
@@ -45,7 +46,6 @@
       signInWithPhoneNumber
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-    // Your Firebase config - replace with your real config
     const firebaseConfig = {
       apiKey: "AIzaSyBNyDnZd2bEanSFPGu7xMgEq04g_mLXRiU",
       authDomain: "testappd-bfd14.firebaseapp.com",
@@ -59,60 +59,57 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    // Setup invisible reCAPTCHA verifier linked to 'recaptcha-container'
-    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-            size: 'invisible',
-            callback: () => {
-                console.log('recaptcha resolved..')
-            }
-        });
+    // Function to render the reCAPTCHA verifier
+    function renderRecaptcha() {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        'size': 'invisible',
+        'callback': (response) => {
+          // reCAPTCHA solved, allow signInWithPhoneNumber.
+          console.log('reCAPTCHA resolved');
+        }
+      });
+      recaptchaVerifier.render();
+    }
 
     // Send verification code (OTP)
     const sendCode = () => {
-      const phoneNumber = document.getElementById("phone").value.trim();
+      const phoneNumber = document.getElementById("phone").value;
       if (!phoneNumber) {
         alert("Please enter a phone number.");
         return;
       }
+      const appVerifier = window.recaptchaVerifier;
 
-      // Reset reCAPTCHA before each request to avoid invalid token
-      window.recaptchaVerifier.clear();
-      window.recaptchaVerifier = new RecaptchaVerifier(
-        "recaptcha-container",
-        {
-          size: "invisible",
-          callback: (response) => {
-            console.log("reCAPTCHA solved", response);
-          }
-        },
-        auth
-      );
-
-      signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier)
+      signInWithPhoneNumber(auth, phoneNumber, appVerifier)
         .then((confirmationResult) => {
           window.confirmationResult = confirmationResult;
           alert("Verification code sent to " + phoneNumber);
+          document.getElementById("code").style.display = 'block';
+          document.getElementById("verifyCodeBtn").style.display = 'block';
         })
         .catch((error) => {
           console.error("Error sending SMS:", error);
           alert("Error sending verification code: " + error.message);
+          // Reset reCAPTCHA to allow user to try again [1]
+          renderRecaptcha();
         });
     };
 
     // Verify the code entered by the user
     const verifyCode = () => {
-      const code = document.getElementById("code").value.trim();
+      const code = document.getElementById("code").value;
       if (!code) {
         alert("Please enter the verification code.");
         return;
       }
 
-      window.confirmationResult
-        .confirm(code)
+      window.confirmationResult.confirm(code)
         .then((result) => {
-          alert("Phone verified successfully!");
+          const user = result.user;
+          console.log("User signed in:", user);
+          alert("Phone number verified successfully!");
           // You can redirect user or handle login success here
-          // window.location.href = "delete-account.html";
+          // window.location.href = "dashboard.html";
         })
         .catch((error) => {
           console.error("Code verification failed:", error);
@@ -123,6 +120,11 @@
     // Attach button click event listeners
     document.getElementById("sendCodeBtn").addEventListener("click", sendCode);
     document.getElementById("verifyCodeBtn").addEventListener("click", verifyCode);
+
+    // Render the reCAPTCHA on page load
+    renderRecaptcha();
   </script>
 </body>
 </html>
+
+
