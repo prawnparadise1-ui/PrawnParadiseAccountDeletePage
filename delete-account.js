@@ -29,7 +29,7 @@ const db = getDatabase(app);
 
 onAuthStateChanged(auth, (user) => {
   if (!user) {
-    alert("Please sign in first.");
+    alert("Please sign in first...");
     window.location.href = "login.html"; // ✅ relative path
   }
 });
