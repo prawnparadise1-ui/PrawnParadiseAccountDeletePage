@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Phone Login</title>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Phone Login</title>
   <style>
     body {
       font-family: sans-serif;
@@ -13,18 +13,12 @@
       border: 1px solid #ddd;
       border-radius: 8px;
     }
-    input {
+    input, button {
       display: block;
       width: 100%;
       margin: 12px 0;
       padding: 10px;
       font-size: 16px;
-    }
-    button {
-      padding: 10px;
-      font-size: 16px;
-      width: 100%;
-      margin-bottom: 10px;
     }
     #recaptcha-container {
       margin-top: 20px;
@@ -35,36 +29,28 @@
 
   <h2>Sign in with Phone Number</h2>
 
-  <!-- Phone number input -->
   <input type="text" id="phone" placeholder="+1234567890" />
+  <button id="sendCodeBtn">Send Verification Code...</button>
 
-  <!-- Send code -->
-  <button id="sendCodeBtn">Send Verification Code</button>
-
-  <!-- Verification code input -->
   <input type="text" id="code" placeholder="Enter verification code" />
-
-  <!-- Verify code -->
   <button id="verifyCodeBtn">Verify Code & Continue</button>
 
-  <!-- reCAPTCHA container -->
   <div id="recaptcha-container"></div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
       getAuth,
-      signInWithPhoneNumber,
-      RecaptchaVerifier
+      RecaptchaVerifier,
+      signInWithPhoneNumber
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-    // Your Firebase config
+    // Your Firebase config - replace with your real config
     const firebaseConfig = {
       apiKey: "AIzaSyBNyDnZd2bEanSFPGu7xMgEq04g_mLXRiU",
       authDomain: "testappd-bfd14.firebaseapp.com",
-      databaseURL: "https://testappd-bfd14.firebaseio.com",
       projectId: "testappd-bfd14",
-      storageBucket: "testappd-bfd14.firebasestorage.app",
+      storageBucket: "testappd-bfd14.appspot.com",
       messagingSenderId: "1065516210854",
       appId: "1:1065516210854:web:e8c5c22a075728927d7267"
     };
@@ -73,90 +59,74 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    // Clear previous reCAPTCHA if exists, then create new invisible reCAPTCHA verifier
-    if (window.recaptchaVerifier) {
-      window.recaptchaVerifier.clear();
-    }
-
-    window.recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', {
-      size: 'invisible',
-      callback: (response) => {
-        console.log('reCAPTCHA solved, response:', response);
+    // Setup invisible reCAPTCHA verifier linked to 'recaptcha-container'
+    window.recaptchaVerifier = new RecaptchaVerifier(
+      "recaptcha-container",
+      {
+        size: "invisible",
+        callback: (response) => {
+          console.log("reCAPTCHA solved", response);
+        }
       },
-      'expired-callback': () => {
-        console.warn('reCAPTCHA expired, please complete it again.');
-      }
-    }, auth);
+      auth
+    );
 
-    // Explicitly render the reCAPTCHA and log widget ID
-    window.recaptchaVerifier.render()
-      .then(widgetId => {
-        window.recaptchaWidgetId = widgetId;
-        console.log('reCAPTCHA widget rendered with ID:', widgetId);
-      })
-      .catch(error => {
-        console.error('Error rendering reCAPTCHA:', error);
-        alert('Failed to render reCAPTCHA. Check console for details.');
-      });
-
-    // Send verification code to phone number
+    // Send verification code (OTP)
     const sendCode = () => {
-      const phoneNumber = document.getElementById('phone').value.trim();
-      console.log('Send code clicked. Phone number:', phoneNumber);
-
+      const phoneNumber = document.getElementById("phone").value.trim();
       if (!phoneNumber) {
-        alert('Please enter a phone number.');
+        alert("Please enter a phone number.");
         return;
       }
 
-      if (!window.recaptchaVerifier) {
-        alert('reCAPTCHA verifier is not ready. Please reload the page.');
-        return;
-      }
+      // Reset reCAPTCHA before each request to avoid invalid token
+      window.recaptchaVerifier.clear();
+      window.recaptchaVerifier = new RecaptchaVerifier(
+        "recaptcha-container",
+        {
+          size: "invisible",
+          callback: (response) => {
+            console.log("reCAPTCHA solved", response);
+          }
+        },
+        auth
+      );
 
       signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier)
-        .then(confirmationResult => {
+        .then((confirmationResult) => {
           window.confirmationResult = confirmationResult;
-          alert('Verification code sent to ' + phoneNumber);
-          console.log('confirmationResult:', confirmationResult);
+          alert("Verification code sent to " + phoneNumber);
         })
-        .catch(error => {
-          console.error('Error sending SMS:', error);
-          alert('Error sending SMS: ' + error.message);
+        .catch((error) => {
+          console.error("Error sending SMS:", error);
+          alert("Error sending verification code: " + error.message);
         });
     };
 
-    // Verify the code entered by user
+    // Verify the code entered by the user
     const verifyCode = () => {
-      const code = document.getElementById('code').value.trim();
-      console.log('Verify code clicked. Code:', code);
-
+      const code = document.getElementById("code").value.trim();
       if (!code) {
-        alert('Please enter the verification code.');
+        alert("Please enter the verification code.");
         return;
       }
 
-      if (!window.confirmationResult) {
-        alert('No confirmation result available. Please request code again.');
-        return;
-      }
-
-      window.confirmationResult.confirm(code)
-        .then(result => {
-          alert('Phone verified! Redirecting...');
-          console.log('User signed in:', result.user);
-          window.location.href = 'delete-account.html'; // Change as needed
+      window.confirmationResult
+        .confirm(code)
+        .then((result) => {
+          alert("Phone verified successfully!");
+          // You can redirect user or handle login success here
+          // window.location.href = "delete-account.html";
         })
-        .catch(error => {
-          console.error('Code verification failed:', error);
-          alert('Invalid or expired verification code.');
+        .catch((error) => {
+          console.error("Code verification failed:", error);
+          alert("Invalid or expired verification code.");
         });
     };
 
-    // Attach event listeners on buttons
-    document.getElementById('sendCodeBtn').addEventListener('click', sendCode);
-    document.getElementById('verifyCodeBtn').addEventListener('click', verifyCode);
+    // Attach button click event listeners
+    document.getElementById("sendCodeBtn").addEventListener("click", sendCode);
+    document.getElementById("verifyCodeBtn").addEventListener("click", verifyCode);
   </script>
-
 </body>
 </html>
