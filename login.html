@@ -108,8 +108,7 @@
           const user = result.user;
           console.log("User signed in:", user);
           alert("Phone number verified successfully!");
-          // You can redirect user or handle login success here
-          // window.location.href = "dashboard.html";
+          window.location.href = "delete-account.html";
         })
         .catch((error) => {
           console.error("Code verification failed:", error);
