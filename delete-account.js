@@ -13,6 +13,7 @@ import {
   remove
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
+// Your Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyBNyDnZd2bEanSFPGu7xMgEq04g_mLXRiU",
   authDomain: "testappd-bfd14.firebaseapp.com",
@@ -23,72 +24,132 @@ const firebaseConfig = {
   appId: "1:1065516210854:web:e8c5c22a075728927d7267"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-// Redirect to login if not signed in
+// Ensure a user is signed in
 onAuthStateChanged(auth, (user) => {
   if (!user) {
+    console.log("No user signed in, redirecting to login.");
     alert("Please sign in first...");
     window.location.href = "login.html";
+  } else {
+    console.log("User is signed in:", user.uid);
   }
 });
 
-document.getElementById('deleteBtn').addEventListener('click', async () => {
-  const user = auth.currentUser;
+// Attach event listener to the delete button
+const deleteButton = document.getElementById('deleteBtn');
 
-  if (!user) {
-    alert("No user is currently signed in...");
-    return;
-  }
+if (deleteButton) {
+  deleteButton.addEventListener('click', async () => {
+    console.log("Delete Account button clicked.");
 
-  if (!user.phoneNumber) {
-    alert("No phone number found for current user. Cannot reauthenticate.");
-    return;
-  }
+    const user = auth.currentUser;
 
-  const uid = user.uid;
-
-  // Clear any existing recaptcha instances
-  if (window.recaptchaVerifier) {
-    window.recaptchaVerifier.clear();
-  }
-
-  // Initialize invisible reCAPTCHA
-  const recaptcha = new RecaptchaVerifier('recaptcha-container', {
-    size: 'invisible',
-  }, auth);
-
-  try {
-    // Send verification code to user's phone
-    const verificationId = await new PhoneAuthProvider(auth).verifyPhoneNumber(user.phoneNumber, recaptcha);
-
-    // Ask user to enter the SMS code (simple prompt, replace with UI if needed)
-    const smsCode = prompt("Enter the SMS code you received to confirm deletion:");
-
-    if (!smsCode) {
-      alert("Deletion cancelled. No code entered.");
+    if (!user) {
+      console.error("No user is currently signed in.");
+      alert("No user is currently signed in...");
       return;
     }
 
-    // Build credential from verification ID and SMS code
-    const credential = PhoneAuthProvider.credential(verificationId, smsCode);
+    console.log("Current user found:", user.uid);
 
-    // Reauthenticate user with credential
-    await reauthenticateWithCredential(user, credential);
+    if (!user.phoneNumber) {
+      console.error("No phone number found for the current user.");
+      alert("No phone number found for current user. Cannot reauthenticate.");
+      return;
+    }
 
-    // Remove user data from Realtime Database
-    await remove(ref(db, 'users/' + uid));
+    console.log("User's phone number:", user.phoneNumber);
 
-    // Delete user authentication account
-    await deleteUser(user);
+    const uid = user.uid;
 
-    alert("Account and data deleted successfully.");
-    window.location.href = "/"; // Redirect to homepage or login page after deletion
+    // Ensure the reCAPTCHA container is in the DOM
+    if (!document.getElementById('recaptcha-container')) {
+      console.error("reCAPTCHA container not found. Please add <div id='recaptcha-container'></div> to your HTML.");
+      alert("A configuration error occurred. Please contact support.");
+      return;
+    }
 
-  } catch (error) {
-    console.error("Error during account deletion:", error);
-    alert("An error occurred: " + error.message);
-  }
-});
+    // Clear any existing reCAPTCHA instances to avoid errors
+    if (window.recaptchaVerifier) {
+      window.recaptchaVerifier.clear();
+      console.log("Cleared previous reCAPTCHA verifier.");
+    }
+
+    console.log("Initializing invisible reCAPTCHA verifier...");
+    try {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        size: 'invisible',
+        callback: (response) => {
+          // reCAPTCHA solved, you can proceed with phone verification
+          console.log("reCAPTCHA solved successfully.");
+        },
+        'expired-callback': () => {
+          // Response expired. Ask user to solve reCAPTCHA again.
+          console.warn("reCAPTCHA response expired.");
+        }
+      });
+    } catch (error) {
+      console.error("Failed to initialize RecaptchaVerifier:", error);
+      alert("Failed to initialize reCAPTCHA. Please refresh and try again.");
+      return;
+    }
+
+    try {
+      console.log("Sending verification code to", user.phoneNumber);
+      const phoneProvider = new PhoneAuthProvider(auth);
+
+      const verificationId = await phoneProvider.verifyPhoneNumber(
+        user.phoneNumber,
+        window.recaptchaVerifier
+      );
+
+      console.log("Verification code sent. Verification ID:", verificationId);
+
+      const smsCode = prompt("To confirm deletion, please enter the SMS code you received:");
+
+      if (!smsCode) {
+        console.log("User cancelled deletion by not entering an SMS code.");
+        alert("Deletion cancelled. No code entered.");
+        return;
+      }
+
+      console.log("User entered SMS code.");
+
+      console.log("Creating phone credential...");
+      const credential = PhoneAuthProvider.credential(verificationId, smsCode);
+
+      console.log("Re-authenticating user...");
+      await reauthenticateWithCredential(user, credential);
+      console.log("User re-authenticated successfully.");
+
+      console.log("Removing user data from Realtime Database for UID:", uid);
+      await remove(ref(db, 'users/' + uid));
+      console.log("User data removed from database.");
+
+      console.log("Deleting user authentication account...");
+      await deleteUser(user);
+      console.log("User account deleted successfully.");
+
+      alert("Account and data deleted successfully.");
+      window.location.href = "/"; // Redirect after deletion
+
+    } catch (error) {
+      console.error("Error during account deletion process:", error);
+      alert("An error occurred during account deletion: " + error.message);
+
+      // Also reset the reCAPTCHA on failure
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.render().then(widgetId => {
+          grecaptcha.reset(widgetId);
+        });
+      }
+    }
+  });
+} else {
+  console.error("Delete button with ID 'deleteBtn' not found.");
+}
