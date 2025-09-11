@@ -13,7 +13,9 @@ import {
   remove
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-// Your Firebase configuration
+// ==============================
+// Firebase Configuration
+// ==============================
 const firebaseConfig = {
   apiKey: "AIzaSyBNyDnZd2bEanSFPGu7xMgEq04g_mLXRiU",
   authDomain: "testappd-bfd14.firebaseapp.com",
@@ -24,23 +26,29 @@ const firebaseConfig = {
   appId: "1:1065516210854:web:e8c5c22a075728927d7267"
 };
 
+// ==============================
 // Initialize Firebase
+// ==============================
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-// Ensure a user is signed in
+// ==============================
+// Redirect to login if no user is signed in
+// ==============================
 onAuthStateChanged(auth, (user) => {
   if (!user) {
-    console.log("No user signed in, redirecting to login.");
+    console.warn("No user signed in. Redirecting to login.html...");
     alert("Please sign in first...");
-    window.location.href = "login.html";
+    window.location.href = "./login.html"; // Redirect to login page in the same directory
   } else {
     console.log("User is signed in:", user.uid);
   }
 });
 
-// Attach event listener to the delete button
+// ==============================
+// Delete Account Handler
+// ==============================
 const deleteButton = document.getElementById('deleteBtn');
 
 if (deleteButton) {
@@ -49,9 +57,11 @@ if (deleteButton) {
 
     const user = auth.currentUser;
 
+    // If no user, redirect to login
     if (!user) {
-      console.error("No user is currently signed in.");
-      alert("No user is currently signed in...");
+      console.error("No user is currently signed in. Redirecting to login.html...");
+      alert("You must sign in first.");
+      window.location.href = "./login.html";
       return;
     }
 
@@ -136,7 +146,7 @@ if (deleteButton) {
       console.log("User account deleted successfully.");
 
       alert("Account and data deleted successfully.");
-      window.location.href = "/"; // Redirect after deletion
+      window.location.href = "./login.html"; // Redirect to login after deletion
 
     } catch (error) {
       console.error("Error during account deletion process:", error);
